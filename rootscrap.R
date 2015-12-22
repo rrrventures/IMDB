@@ -42,8 +42,7 @@ series_parsed[[i]]<-htmlParse(seriesbruta[[i]])
 
 #Sacar numero de temporadas
 
-links.temporadas<-xpathSApply(series_parsed,"//span[@class='see-more inline']/a",xmlValue)
-lista<-llply(series_parsed,function(t) xpathSApply(t,"//span[@class='see-more inline']/a",xmlValue))
+lista<-llply(series_parsed,function(t) xpathSApply(t,"//div[@class='seasons-and-year-nav']/div/a",xmlValue))
 ntemporadas<-ldply(lista,function(t) t[1])
 
 
@@ -54,7 +53,7 @@ pags<-paste("http://www.imdb.com",links,"episodes?season=",sep="")
 asdf<-list()
 
 for (i in 1:length(links)){
-asdf[[i]]<-paste(pags[i],1:lista3[i],"&ref_=tt_eps_sn_",1:lista3[i],sep="")
+asdf[[i]]<-paste(pags[i],1:ntemporadas[i,1],"&ref_=tt_eps_sn_",1:ntemporadas[i,1],sep="")
 }
 
 
@@ -73,13 +72,12 @@ capsparsed<-list()
 for (i in 1:50){
 
 capsparsed[[i]]<-htmlParse(getURL(capslinks2[[i]]))
-Sys.sleep(30)
+Sys.sleep(5)
 i
 }
 
 capsrating<-llply(capsparsed,function(t) xpathSApply(t,"//div[@class='star-box-details']/strong/span",xmlValue))
 ### alternativa al for capsparsed<-llply(capslinks2,function(t) htmlParse(getURL(t)))
-
 
 
 #Convertir a numéricos y comparar
@@ -93,8 +91,20 @@ caps_promedio<-caps_suma/caps_largo
 
 series_ratings-caps_promedio
 
+df<-data.frame(Nombre=nombres,Nota.serie=ratings,Caps.promedio=caps_promedio)
+df2<-melt(df,id="Nombre")
+
+
+##Graficar
+
 ggplot(data=df2,aes(x=Nombre,y=value,colour=variable,group=variable))+geom_line()+theme(axis.text.x = element_text(angle=55,hjust=1))+scale_x_discrete(limits=nombres)
 
+
+
+
+
+
+###Esto es para el analisis de proporcion de votos
 
 caps_notas<-list()
 caps_votos<-list()
